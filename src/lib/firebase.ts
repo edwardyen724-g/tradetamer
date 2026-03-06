@@ -1,1 +1,9 @@
-import { initializeApp } from 'firebase/app'; import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth'; import { getFirestore, collection, getDocs } from 'firebase/firestore'; const firebaseConfig = {}; const app = initializeApp(firebaseConfig); export const auth = getAuth(app); export const db = getFirestore(app); export { signInWithEmailAndPassword, onAuthStateChanged, collection, getDocs };
+import { initializeApp } from 'firebase/app';
+import { getAuth } from 'firebase/auth';
+
+const firebaseConfig = {
+  // Your firebase config here
+};
+
+const app = initializeApp(firebaseConfig);
+export const auth = getAuth(app);

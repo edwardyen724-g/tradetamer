@@ -43,31 +43,7 @@ const ExpensesPage: React.FC = () => {
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">Expense Tracking</h1>
       <table className="min-w-full table-auto">
-        <thead>
-          <tr className="bg-gray-200">
-            <th className="px-4 py-2">Description</th>
-            <th className="px-4 py-2">Amount</th>
-            <th className="px-4 py-2">Date</th>
-            <th className="px-4 py-2">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {expenses.map((expense) => (
-            <tr key={expense.id} className="border-b">
-              <td className="px-4 py-2">{expense.description}</td>
-              <td className="px-4 py-2">${expense.amount.toFixed(2)}</td>
-              <td className="px-4 py-2">{new Date(expense.date).toLocaleDateString()}</td>
-              <td className="px-4 py-2">
-                <button
-                  onClick={() => handleDelete(expense.id)}
-                  className="text-red-500 hover:underline"
-                >
-                  Delete
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
+        {/* ... rest of your JSX */}
       </table>
     </div>
   );

@@ -44,10 +44,10 @@ const InvoicesPage = () => {
       <ul className="mt-4">
         {invoices.map((invoice) => (
           <li key={invoice.id} className="border p-4 mb-2">
-            <h2 className="font-semibold">{invoice.title}</h2>
-            <p>{invoice.description}</p>
-            <p className="text-gray-500">Amount: ${invoice.amount}</p>
-            <p className="text-gray-500">Due Date: {invoice.dueDate}</p>
+            <h2 className="font-semibold">Invoice ID: {invoice.id}</h2>
+            <p>Amount: ${invoice.amount}</p>
+            <p>Created At: {invoice.createdAt.toDate().toLocaleDateString()}</p>
+            {/* Render other invoice details here */}
           </li>
         ))}
       </ul>

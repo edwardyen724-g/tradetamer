@@ -1,69 +1,56 @@
-import React from 'react';
 import { useEffect, useState } from 'react';
-import { getInvoices } from '@/lib/invoiceService'; // A hypothetical service to fetch invoices
-import { Invoice } from '@/types/invoice'; // Assuming you have a type definition for Invoice
-import { auth } from 'firebase/app';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { Invoice } from '@/lib/types';
+import { fetchInvoices } from '@/lib/invoiceService';
 
-const InvoicesPage: React.FC = () => {
+const InvoicesPage = () => {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [user, setUser] = useState<firebase.User | null>(null);
+  const auth = getAuth();
 
   useEffect(() => {
-    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        setError('You must be logged in to view invoices.');
+        setLoading(false);
+        return;
+      }
 
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      if (currentUser) {
-        setUser(currentUser);
-        try {
-          const fetchedInvoices = await getInvoices(currentUser.uid);
-          setInvoices(fetchedInvoices);
-        } catch (err) {
-          setError(err instanceof Error ? err.message : String(err));
-        } finally {
-          setLoading(false);
-        }
-      } else {
+      try {
+        const fetchedInvoices = await fetchInvoices(user.uid);
+        setInvoices(fetchedInvoices);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : String(err));
+      } finally {
         setLoading(false);
       }
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [auth]);
 
   if (loading) {
     return <div>Loading...</div>;
   }
 
-  if (!user) {
-    return <div>Please log in to view your invoices.</div>;
+  if (error) {
+    return <div className="text-red-500">{error}</div>;
   }
 
   return (
-    <div className="p-4">
+    <div>
       <h1 className="text-2xl font-bold">Your Invoices</h1>
-      {error && <div className="text-red-500">{error}</div>}
-      {invoices.length === 0 ? (
-        <div>No invoices found.</div>
-      ) : (
-        <ul>
-          {invoices.map((invoice) => (
-            <li key={invoice.id} className="border-b py-2">
-              <div>
-                <strong>Invoice ID:</strong> {invoice.id}
-              </div>
-              <div>
-                <strong>Amount:</strong> ${invoice.amount.toFixed(2)}
-              </div>
-              <div>
-                <strong>Date:</strong> {new Date(invoice.date).toLocaleDateString()}
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
+      <ul className="mt-4">
+        {invoices.map((invoice) => (
+          <li key={invoice.id} className="border p-4 mb-2">
+            <h2 className="font-semibold">{invoice.title}</h2>
+            <p>{invoice.description}</p>
+            <p className="text-gray-500">Amount: ${invoice.amount}</p>
+            <p className="text-gray-500">Due Date: {invoice.dueDate}</p>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 };

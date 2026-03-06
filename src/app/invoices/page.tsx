@@ -47,12 +47,10 @@ const InvoicesPage = () => {
             <h2 className="font-semibold">Invoice ID: {invoice.id}</h2>
             <p>Amount: ${invoice.amount}</p>
             <p>Created At: {invoice.createdAt.toDate().toLocaleDateString()}</p>
-            {/* Render other invoice details here */}
           </li>
         ))}
       </ul>
     </div>
   );
 };
-
 export default InvoicesPage;

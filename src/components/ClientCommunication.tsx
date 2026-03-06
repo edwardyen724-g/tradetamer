@@ -1,0 +1,1 @@
+const ClientCommunication = () => <div></div>; export default ClientCommunication;

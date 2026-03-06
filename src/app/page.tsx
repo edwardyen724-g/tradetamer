@@ -1,68 +1,54 @@
-'use client';
+import Image from 'next/image';
+import { useEffect } from 'react';
+import { auth } from '../lib/firebase'; // Assumed path for firebase client initialization
+import { onAuthStateChanged } from 'firebase/auth';
 
-import React from 'react';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../lib/firebase'; // Adjust the path based on your structure
-import { useState } from 'react';
+export default function Home() {
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        console.log('User is logged in:', user);
+      } else {
+        console.log('No user is logged in.');
+      }
+    });
 
-const Page: React.FC = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState<string | null>(null);
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-      // Handle successful login, e.g., redirect to dashboard
-    } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
-    }
-  };
+    return () => unsubscribe();
+  }, []);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
-      <h1 className="text-4xl font-bold mb-4">TradeTamer</h1>
-      <p className="text-xl mb-4">Automate your paperwork, focus on your trade.</p>
-      <h2 className="text-2xl mb-6">Simplify Your Admin Tasks and Boost Your Trade Business</h2>
-      <form onSubmit={handleLogin} className="bg-white p-6 rounded shadow-md">
-        <div className="mb-4">
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-            Email
-          </label>
-          <input
-            type="email"
-            id="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring focus:ring-indigo-500"
-            required
-          />
-        </div>
-        <div className="mb-6">
-          <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-            Password
-          </label>
-          <input
-            type="password"
-            id="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring focus:ring-indigo-500"
-            required
-          />
-        </div>
-        {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
-        <button
-          type="submit"
-          className="w-full inline-flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none"
+    <main className="flex flex-col items-center justify-center min-h-screen py-2 bg-gray-50">
+      <Image
+        src="/logo.svg" // Add your logo path here
+        alt="TradeTamer Logo"
+        width={300}
+        height={100}
+        className="mb-8"
+      />
+      <h1 className="text-4xl font-bold text-center text-gray-800">
+        Simplify Your Admin Tasks and Boost Your Trade Business
+      </h1>
+      <p className="mt-4 text-lg text-gray-600">
+        Automate your paperwork, focus on your trade.
+      </p>
+      <div className="mt-8">
+        <h2 className="text-2xl font-semibold text-gray-800">MVP Features</h2>
+        <ul className="list-disc list-inside mt-4 text-gray-600">
+          <li>Invoice generation with customizable templates tailored for tradespeople</li>
+          <li>Automated scheduling reminders for jobs and client appointments</li>
+          <li>Expense tracking with simple categorization and report generation</li>
+          <li>Client communication automation via email templates for quotes and follow-ups</li>
+          <li>Payment integration with Stripe for seamless billing and collections</li>
+        </ul>
+      </div>
+      <div className="mt-8">
+        <a
+          href="/get-started"
+          className="px-6 py-2 text-white bg-blue-600 rounded hover:bg-blue-700"
         >
-          Login
-        </button>
-      </form>
-    </div>
+          Get Started
+        </a>
+      </div>
+    </main>
   );
-};
-
-export default Page;
+}

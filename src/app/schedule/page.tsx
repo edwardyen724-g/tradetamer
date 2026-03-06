@@ -1,54 +1,66 @@
 import React, { useEffect, useState } from 'react';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import { firestore } from '../../lib/firebase'; // Adjust path based on your structure
-import { collection, getDocs } from 'firebase/firestore';
+import { initializeApp } from 'firebase/app';
+import { getAuth } from 'firebase/auth';
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+} from 'firebase/auth';
+import { firestore } from 'lib/firebase'; // Assume proper Firebase configuration is set up in lib/firebase
+import { useRouter } from 'next/navigation';
+
+const firebaseConfig = {
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
 
 const SchedulePage: React.FC = () => {
-  const [user, setUser] = useState<any>(null);
-  const [appointments, setAppointments] = useState<any[]>([]);
-  const auth = getAuth();
+  const router = useRouter();
+  const [appointments, setAppointments] = useState<any[]>([]); // Replace with a proper type
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        setUser(user);
-        await loadAppointments(user.uid);
-      } else {
-        setUser(null);
+    const fetchAppointments = async () => {
+      try {
+        const user = auth.currentUser;
+        if (!user) {
+          setError('User not authenticated');
+          return;
+        }
+        const querySnapshot = await firestore.collection('appointments').where('userId', '==', user.uid).get();
+        const fetchedAppointments = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setAppointments(fetchedAppointments);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : String(err));
+      } finally {
+        setLoading(false);
       }
-    });
+    };
 
-    return () => unsubscribe();
-  }, [auth]);
-
-  const loadAppointments = async (userId: string) => {
-    try {
-      const appointmentsCollection = collection(firestore, `users/${userId}/appointments`);
-      const appointmentsSnapshot = await getDocs(appointmentsCollection);
-      const appointmentsList = appointmentsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setAppointments(appointmentsList);
-    } catch (err) {
-      console.error('Error loading appointments:', err instanceof Error ? err.message : String(err));
-    }
-  };
+    fetchAppointments();
+  }, []);
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold">Schedule Your Appointments</h1>
-      {user ? (
-        <div>
-          <h2 className="text-xl mt-4">Your Appointments</h2>
-          <ul className="mt-2">
-            {appointments.map((appointment) => (
-              <li key={appointment.id} className="mb-2 border p-2 rounded shadow">
-                <span>{appointment.date} - {appointment.clientName}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : (
-        <p>Please log in to view your appointments.</p>
-      )}
+    <div className="p-4">
+      <h1 className="text-2xl font-bold mb-4">Your Appointments</h1>
+      {loading && <p>Loading appointments...</p>}
+      {error && <p className="text-red-500">{error}</p>}
+      <ul className="space-y-2">
+        {appointments.map(appointment => (
+          <li key={appointment.id} className="border p-4 rounded">
+            <h2 className="font-semibold">{appointment.title}</h2>
+            <p>Date & Time: {new Date(appointment.date).toLocaleString()}</p>
+            <p>Client: {appointment.clientName}</p>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 };

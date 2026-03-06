@@ -1,0 +1,1 @@
+const InvoiceList = () => <div></div>; export default InvoiceList;

@@ -53,4 +53,5 @@ const InvoicesPage = () => {
     </div>
   );
 };
+
 export default InvoicesPage;

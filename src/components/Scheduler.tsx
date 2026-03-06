@@ -1,0 +1,1 @@
+const Scheduler = () => <div></div>; export default Scheduler;

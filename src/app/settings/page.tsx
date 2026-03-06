@@ -1,47 +1,84 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { getAuth } from 'firebase/auth';
-import { useSession } from '../../context/AuthContext';
-import { firebaseApp } from '../../lib/firebase'; // Make sure to set up the firebase app
-  
-const SettingsPage: React.FC = () => {
-  const auth = getAuth(firebaseApp);
-  const { user } = useSession();
+import { initializeApp } from 'firebase/app';
+import { useRouter } from 'next/navigation';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { FirebaseConfig } from '../../lib/firebase'; // Assuming you have a firebase config file
+import { AuthContextProvider, useAuth } from '../../context/AuthContext'; // Assuming you have an Auth context
 
-  return (
-    <div className="p-6 space-y-4">
-      <h1 className="text-2xl font-bold">Settings</h1>
-      {user ? (
-        <div>
-          <h2 className="text-xl">Welcome, {user.displayName || 'User'}</h2>
-          <div className="mt-4">
-            <h3 className="font-semibold">Profile Settings</h3>
-            <form>
-              <div className="mb-4">
-                <label className="block text-sm">Email:</label>
-                <input
-                  type="email"
-                  defaultValue={user.email}
-                  className="block w-full p-2 border rounded"
-                  disabled
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm">Name:</label>
-                <input
-                  type="text"
-                  defaultValue={user.displayName || ''}
-                  className="block w-full p-2 border rounded"
-                />
-              </div>
-              <button className="mt-2 px-4 py-2 bg-blue-600 text-white rounded">Update Settings</button>
-            </form>
-          </div>
+const app = initializeApp(FirebaseConfig);
+
+const SettingsPage: React.FC = () => {
+    const { user } = useAuth();
+    const router = useRouter();
+    const [settings, setSettings] = useState<any>({}); // Replace `any` with appropriate settings type
+    
+    useEffect(() => {
+        if (!user) {
+            router.push('/login');
+        } else {
+            // Fetch user settings from API or state management
+            fetchUserSettings();
+        }
+    }, [user, router]);
+
+    const fetchUserSettings = async () => {
+        try {
+            const response = await fetch('/api/settings', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${user?.uid}`,
+                },
+            });
+            const data = await response.json();
+            if (response.ok) {
+                setSettings(data);
+            } else {
+                toast.error(data.message || 'Failed to fetch settings');
+            }
+        } catch (error) {
+            toast.error(err instanceof Error ? err.message : String(err));
+        }
+    };
+
+    const handleUpdateSettings = async (newSettings: any) => {
+        try {
+            const response = await fetch('/api/settings', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${user?.uid}`,
+                },
+                body: JSON.stringify(newSettings),
+            });
+
+            if (response.ok) {
+                toast.success('Settings updated successfully!');
+                setSettings(newSettings);
+            } else {
+                const data = await response.json();
+                toast.error(data.message || 'Failed to update settings');
+            }
+        } catch (error) {
+            toast.error(err instanceof Error ? err.message : String(err));
+        }
+    };
+
+    return (
+        <div className="container mx-auto p-4">
+            <h1 className="text-2xl font-bold">Settings</h1>
+            {/* Render settings form here */}
+            {/* Include input handlers and update calls */}
         </div>
-      ) : (
-        <p className="text-red-600">Please sign in to access your settings.</p>
-      )}
-    </div>
-  );
+    );
 };
 
-export default SettingsPage;
+const Settings = () => (
+    <AuthContextProvider>
+        <SettingsPage />
+    </AuthContextProvider>
+);
+
+export default Settings;

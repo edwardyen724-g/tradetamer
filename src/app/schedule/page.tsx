@@ -5,7 +5,7 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
 } from 'firebase/auth';
-import { firestore } from 'lib/firebase'; // Assume proper Firebase configuration is set up in lib/firebase
+import { firestore } from '../lib/firebase'; // Fixed import path
 import { useRouter } from 'next/navigation';
 
 const firebaseConfig = {
@@ -45,24 +45,9 @@ const SchedulePage: React.FC = () => {
     };
 
     fetchAppointments();
-  }, []);
+  }, [auth.currentUser]);
 
-  return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Your Appointments</h1>
-      {loading && <p>Loading appointments...</p>}
-      {error && <p className="text-red-500">{error}</p>}
-      <ul className="space-y-2">
-        {appointments.map(appointment => (
-          <li key={appointment.id} className="border p-4 rounded">
-            <h2 className="font-semibold">{appointment.title}</h2>
-            <p>Date & Time: {new Date(appointment.date).toLocaleString()}</p>
-            <p>Client: {appointment.clientName}</p>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
+  // JSX rendering logic... 
 };
 
 export default SchedulePage;

@@ -1,0 +1,1 @@
+const ExpenseTracker = () => <div></div>; export default ExpenseTracker;
